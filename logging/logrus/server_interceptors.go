@@ -25,8 +25,8 @@ var (
 func UnaryServerInterceptor(entry *logrus.Entry, opts ...Option) grpc.UnaryServerInterceptor {
 	o := evaluateServerOpt(opts)
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		newCtx := newLoggerForCall(ctx, entry, info.FullMethod)
 		startTime := time.Now()
+		newCtx := newLoggerForCall(ctx, entry, info.FullMethod, startTime)
 		resp, err := handler(newCtx, req)
 		code := o.codeFunc(err)
 		level := o.levelFunc(code)
@@ -50,11 +50,11 @@ func UnaryServerInterceptor(entry *logrus.Entry, opts ...Option) grpc.UnaryServe
 func StreamServerInterceptor(entry *logrus.Entry, opts ...Option) grpc.StreamServerInterceptor {
 	o := evaluateServerOpt(opts)
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		newCtx := newLoggerForCall(stream.Context(), entry, info.FullMethod)
+		startTime := time.Now()
+		newCtx := newLoggerForCall(stream.Context(), entry, info.FullMethod, startTime)
 		wrapped := grpc_middleware.WrapServerStream(stream)
 		wrapped.WrappedContext = newCtx
 
-		startTime := time.Now()
 		err := handler(srv, wrapped)
 		code := o.codeFunc(err)
 		level := o.levelFunc(code)
@@ -91,7 +91,7 @@ func levelLogf(entry *logrus.Entry, level logrus.Level, format string, args ...i
 	}
 }
 
-func newLoggerForCall(ctx context.Context, entry *logrus.Entry, fullMethodString string) context.Context {
+func newLoggerForCall(ctx context.Context, entry *logrus.Entry, fullMethodString string, start time.Time) context.Context {
 	service := path.Dir(fullMethodString)[1:]
 	method := path.Base(fullMethodString)
 	callLog := entry.WithFields(
@@ -100,6 +100,7 @@ func newLoggerForCall(ctx context.Context, entry *logrus.Entry, fullMethodString
 			KindField:      "server",
 			"grpc.service": service,
 			"grpc.method":  method,
+			"grpc.start": start.Round(time.Millisecond).Format(time.RFC3339Nano),
 		})
 	return toContext(ctx, callLog)
 }

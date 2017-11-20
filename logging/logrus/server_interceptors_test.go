@@ -59,6 +59,7 @@ func (s *logrusServerSuite) TestPing_WithCustomTags() {
 		s.T()
 		assert.Contains(s.T(), m, `"grpc.service": "mwitkow.testproto.TestService"`, "all lines must contain service name")
 		assert.Contains(s.T(), m, `"grpc.method": "Ping"`, "all lines must contain method name")
+		assert.Contains(s.T(), m, `"grpc.start"`, "all lines must contain start time")
 		assert.Contains(s.T(), m, `"custom_tags.string": "something"`, "all lines must contain `custom_tags.string` set by AddFields")
 		assert.Contains(s.T(), m, `"custom_tags.int": 1337`, "all lines must contain `custom_tags.int` set by AddFields")
 		assert.Contains(s.T(), m, `"custom_field": "custom_value"`, "all lines must contain `custom_field` set by AddFields")
@@ -109,6 +110,7 @@ func (s *logrusServerSuite) TestPingError_WithCustomLevels() {
 		m := msgs[0]
 		assert.Contains(s.T(), m, `"grpc.service": "mwitkow.testproto.TestService"`, "all lines must contain service name")
 		assert.Contains(s.T(), m, `"grpc.method": "PingError"`, "all lines must contain method name")
+		assert.Contains(s.T(), m, `"grpc.start"`, "all lines must contain start time")
 		assert.Contains(s.T(), m, fmt.Sprintf(`"grpc.code": "%s"`, tcase.code.String()), "all lines must contain method name")
 		assert.Contains(s.T(), m, fmt.Sprintf(`"level": "%s"`, tcase.level.String()), tcase.msg)
 	}
@@ -130,6 +132,7 @@ func (s *logrusServerSuite) TestPingList_WithCustomTags() {
 		s.T()
 		assert.Contains(s.T(), m, `"grpc.service": "mwitkow.testproto.TestService"`, "all lines must contain service name")
 		assert.Contains(s.T(), m, `"grpc.method": "PingList"`, "all lines must contain method name")
+		assert.Contains(s.T(), m, `"grpc.start"`, "all lines must contain start time")
 		assert.Contains(s.T(), m, `"span.kind": "server"`, "all lines must contain the kind of call (server)")
 		assert.Contains(s.T(), m, `"custom_tags.string": "something"`, "all lines must contain `custom_tags.string` set by AddFields")
 		assert.Contains(s.T(), m, `"custom_tags.int": 1337`, "all lines must contain `custom_tags.int` set by AddFields")
@@ -175,6 +178,7 @@ func (s *logrusServerOverrideSuite) TestPing_HasOverriddenDuration() {
 		s.T()
 		assert.Contains(s.T(), m, `"grpc.service": "mwitkow.testproto.TestService"`, "all lines must contain service name")
 		assert.Contains(s.T(), m, `"grpc.method": "Ping"`, "all lines must contain method name")
+		assert.Contains(s.T(), m, `"grpc.start"`, "all lines must contain start time")
 	}
 	assert.Contains(s.T(), msgs[0], `"msg": "some ping"`, "handler's message must contain user message")
 	assert.NotContains(s.T(), msgs[0], "grpc.time_ms", "handler's message must not contain default duration")
@@ -201,6 +205,7 @@ func (s *logrusServerOverrideSuite) TestPingList_HasOverriddenDuration() {
 		s.T()
 		assert.Contains(s.T(), m, `"grpc.service": "mwitkow.testproto.TestService"`, "all lines must contain service name")
 		assert.Contains(s.T(), m, `"grpc.method": "PingList"`, "all lines must contain method name")
+		assert.Contains(s.T(), m, `"grpc.start"`, "all lines must contain start time")
 	}
 	assert.Contains(s.T(), msgs[0], `"msg": "some pinglist"`, "handler's message must contain user message")
 	assert.NotContains(s.T(), msgs[0], "grpc.time_ms", "handler's message must not contain default duration")
